@@ -37,17 +37,17 @@ func main() {
 	}
 
 	// 定义日期时间字符串的格式
-	format := "2006年1月2日15时"
+	format := "2006-01-02 15:04:05"
 
 	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
-	dateTime, err := time.Parse(format, ticket.StartTime)
+	dateTime, err := time.ParseInLocation(format, ticket.StartTime, time.Local)
 	if err != nil {
 		fmt.Println("解析日期时间失败:", err)
 		return
 	}
 	for {
-		currentTime := time.Now()
-		if currentTime.Add(10 * time.Second).After(dateTime) {
+		currentTime := time.Now().Add(10 * time.Second)
+		if currentTime.Before(dateTime.In(time.Local)) {
 			continue
 		}
 		if ticketAdd(ticket) {

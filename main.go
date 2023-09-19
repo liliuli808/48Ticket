@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -45,21 +46,50 @@ func main() {
 		fmt.Println("解析日期时间失败:", err)
 		return
 	}
+
+	// 设置最大并发请求数
+	maxConcurrentRequests := 5
+
+	// 创建通道用于通知抢票结果
+	ticketChan := make(chan bool)
+
+	// 创建等待组
+	var wg sync.WaitGroup
 	for {
 		currentTime := time.Now().Add(10 * time.Second)
 		if currentTime.Before(dateTime.In(time.Local)) {
 			continue
 		}
-		if ticketAdd(ticket) {
+		// 启动最大并发请求数的抢票任务
+		for i := 0; i < maxConcurrentRequests; i++ {
+			wg.Add(1)
+			go ticketAdd(ticket, ticketChan, &wg)
+		}
+
+		// 等待所有抢票任务完成
+		wg.Wait()
+
+		// 统计抢票结果
+		successCount := 0
+		for i := 0; i < maxConcurrentRequests; i++ {
+			if <-ticketChan {
+				successCount++
+			}
+		}
+
+		if successCount > 0 {
 			log.Println("抢票成功")
 			break
 		} else {
-			log.Println("抢票失败")
+			log.Println("抢票失败，继续尝试...")
 		}
 	}
+	close(ticketChan)
 }
 
-func ticketAdd(ticket TicketType) bool {
+func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	requestData := "ticketsid=%s&num=1&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
@@ -72,7 +102,8 @@ func ticketAdd(ticket TicketType) bool {
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBufferString(requestData))
 	if err != nil {
 		log.Println(err)
-		return false
+		ticketChan <- false
+		return
 	}
 
 	// 设置请求头
@@ -96,24 +127,31 @@ func ticketAdd(ticket TicketType) bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return false
+		ticketChan <- false
+		return
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return false
+		ticketChan <- false
+		return
 	}
 	var bodyMessage Message
 	err = json.Unmarshal(body, &bodyMessage)
 	if err != nil {
-		return false
+		log.Println(err)
+		ticketChan <- false
+		return
 	}
 	log.Println(bodyMessage)
 	if bodyMessage.ErrorCode == "144006" || bodyMessage.ErrorCode == "144008" {
-		return true
+		ticketChan <- true
+		return
 	}
-	return false
+
+	ticketChan <- false
+	return
 }
 
 type Message struct {

@@ -48,10 +48,10 @@ func main() {
 	}
 
 	// 设置最大并发请求数
-	maxConcurrentRequests := 5
+	maxConcurrentRequests := 2
 
 	// 创建通道用于通知抢票结果
-	ticketChan := make(chan bool)
+	ticketChan := make(chan bool, 2)
 
 	// 创建等待组
 	var wg sync.WaitGroup

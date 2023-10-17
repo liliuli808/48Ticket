@@ -16,9 +16,10 @@ RUN set -ex \
 
 FROM alpine:latest
 
-
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN apk add -U tzdata
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN echo 'Asia/Shanghai' >/etc/timezone
+RUN apk del tzdata
 
 COPY --from=builder /usr/src/app/ticket /usr/bin/ticket
 RUN chmod +x /usr/bin/ticket

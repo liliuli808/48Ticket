@@ -19,6 +19,7 @@ type TicketType struct {
 	TicketID  string `yaml:"ticketId"`
 	Cookie    string `yaml:"cookie"`
 	StartTime string `yaml:"startTime"`
+	Num       string `yaml:"num"`
 }
 
 func main() {
@@ -90,10 +91,10 @@ func main() {
 func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	requestData := "ticketsid=%s&num=1&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
+	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
-	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.SeatType, ticket.Brand)
+	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.SeatType, ticket.Brand, ticket.Num)
 
 	// 创建一个HTTP请求客户端
 	client := &http.Client{}

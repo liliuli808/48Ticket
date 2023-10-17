@@ -18,9 +18,7 @@ FROM alpine:latest
 
 RUN apk --update add tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone && \
-    apk del tzdata && \
-    rm -rf /var/cache/apk/*
+    echo "Asia/Shanghai" > /etc/timezone
 
 COPY --from=builder /usr/src/app/ticket /usr/bin/ticket
 RUN chmod +x /usr/bin/ticket

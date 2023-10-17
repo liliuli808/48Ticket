@@ -94,7 +94,7 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
-	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.SeatType, ticket.Brand, ticket.Num)
+	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand)
 
 	// 创建一个HTTP请求客户端
 	client := &http.Client{}

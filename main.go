@@ -47,8 +47,8 @@ func main() {
 		fmt.Println("解析日期时间失败:", err)
 		return
 	}
-	log.Println(dateTime.GoString())
-	log.Println(time.Now().In(time.Local))
+	log.Println(dateTime.String())
+	log.Println(time.Now())
 	// 设置最大并发请求数
 	maxConcurrentRequests := 5
 

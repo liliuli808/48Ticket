@@ -48,7 +48,7 @@ func main() {
 		return
 	}
 	log.Println(dateTime.String())
-	log.Println(time.Now())
+	log.Println(time.Now().In(time.Local))
 	// 设置最大并发请求数
 	maxConcurrentRequests := 5
 

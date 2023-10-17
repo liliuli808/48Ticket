@@ -42,7 +42,7 @@ func main() {
 	format := "2006-01-02 15:04:05"
 
 	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
-	dateTime, err := time.ParseInLocation(format, ticket.StartTime, time.Local)
+	dateTime, err := time.Parse(format, ticket.StartTime)
 	if err != nil {
 		fmt.Println("解析日期时间失败:", err)
 		return
@@ -59,7 +59,7 @@ func main() {
 	var wg sync.WaitGroup
 	for {
 		currentTime := time.Now().Add(3 * time.Second)
-		if currentTime.Before(dateTime.In(time.Local)) {
+		if currentTime.Before(dateTime) {
 			continue
 		}
 		// 启动最大并发请求数的抢票任务

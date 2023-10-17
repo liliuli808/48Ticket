@@ -23,6 +23,8 @@ type TicketType struct {
 }
 
 func main() {
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
 	// 读取YAML配置文件
 	yamlFile, err := os.ReadFile("./config.yaml")
 	if err != nil {
@@ -40,16 +42,15 @@ func main() {
 
 	// 定义日期时间字符串的格式
 	format := "2006-01-02 15:04:05"
-	var cstZone = time.FixedZone("CST", 8*3600)
 
 	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
-	dateTime, err := time.Parse(format, ticket.StartTime)
+	dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
 	if err != nil {
 		fmt.Println("解析日期时间失败:", err)
 		return
 	}
 	log.Println(dateTime.String())
-	log.Println(time.Now().In(cstZone))
+	log.Println(time.Now())
 	// 设置最大并发请求数
 	maxConcurrentRequests := 5
 
@@ -59,7 +60,7 @@ func main() {
 	// 创建等待组
 	var wg sync.WaitGroup
 	for {
-		currentTime := time.Now().In(cstZone).Add(3 * time.Second)
+		currentTime := time.Now().Add(3 * time.Second)
 		if currentTime.Before(dateTime) {
 			continue
 		}

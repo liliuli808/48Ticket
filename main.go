@@ -52,7 +52,7 @@ func main() {
 	maxConcurrentRequests := 5
 
 	// 创建通道用于通知抢票结果
-	ticketChan := make(chan bool, 2)
+	ticketChan := make(chan bool, 5)
 
 	// 创建等待组
 	var wg sync.WaitGroup
@@ -66,6 +66,7 @@ func main() {
 			wg.Add(1)
 			go ticketAdd(ticket, ticketChan, &wg)
 		}
+		time.Sleep(time.Second)
 
 		// 等待所有抢票任务完成
 		wg.Wait()
@@ -114,7 +115,7 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 	req.Header.Set("Cookie", ticket.Cookie)
 	req.Header.Set("Origin", "https://shop.48.cn")
-	req.Header.Set("Referer", "https://shop.48.cn/tickets/item/5421?seat_type=4")
+	req.Header.Set("Referer", "https://shop.48.cn/TOrder")
 	req.Header.Set("Sec-Fetch-Dest", "empty")
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
@@ -146,7 +147,7 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 		return
 	}
 	log.Println(bodyMessage)
-	if bodyMessage.ErrorCode == "144006" || bodyMessage.ErrorCode == "144008" {
+	if bodyMessage.HasError == false {
 		ticketChan <- true
 		return
 	}

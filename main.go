@@ -66,7 +66,6 @@ func main() {
 			wg.Add(1)
 			go ticketAdd(ticket, ticketChan, &wg)
 		}
-		time.Sleep(time.Second)
 
 		// 等待所有抢票任务完成
 		wg.Wait()

@@ -1,5 +1,33 @@
-brand: "1"
-seatType: "3"
-ticketId: "5491"
-cookie: "route=f36c2e83346cf242bee922f3b3262330; Hm_lvt_f32737cfa62ed971bb3185792d3204eb=1694575287,1694918469,1695035146,1695089373; __RequestVerificationToken=hpeF0i9hKuT5xYcrHv57LHICs-lMGJ0rUa_EI49KjQ9FL56n63CtTOFSC1WHRN1t7-0DuIie3IzUJDmpa-0_gGC9mJ81; .AspNet.ApplicationCookie=xJmWSz85zuSOapvk-Uz4IyZq6k9QFdT2I6vzWzjilNkKQXvdR8wCTYZD1v5A5mnxUXFZDFaZw50OHg-oEB0RH1EI97NXwx7OuYtcw8n-qksUa034AqD9E_rnbhj0-sVfHbs5LYXUp08IbiVQN4_2bYIyoDBo8cL2mC1s1Unv0V8MUGdIJsDHNiRGyCbtLiIKV7Dl6nLtFPX7Or58poTZaPuzHoU89txC0wGlFDisi6b8h4BFmvwzZMwvWNnjZ4QQj5BPdxEIbjc3pan5OOzw0Gvjep9RxfqX2soSCxSzNzatAouFL1t1ZszUJw7aG8a7GuRQ_Lq47YIvcDTSqGo5cONh3NJgDr-Hc_IWZ68acJTo1HztE4AqCkDze58HA3YxsqbFu78ba3Ryh_01-502oNnYfFDFn07vMe070P18V8ueN1ywEpfd11w1-8m1dntTYcVDZk5BQALDSan8kcPRYeynyxe3Dsk-YZ-U9ro_0FQ0Ux0Tx9hqjJpBpjcghSumg57KDaGUWZ4GYQzB5axDSQTPeD90_RNgE0xmwOD7yU9IVfdzKxdP-OCYCDynKmkswrDXVPI9FxMi9aQjg3yTDVE4HCXICfcOgRGiwqw2WE9HukZ2; Hm_lpvt_f32737cfa62ed971bb3185792d3204eb=1695110830"
+#brand: "1"
+#seatType: "3"
+#ticketId: "5560"
+cookie: "Hm_lvt_f32737cfa62ed971bb3185792d3204eb=1695727533,1696670435,1697510223,1697528706; Hm_lpvt_f32737cfa62ed971bb3185792d3204eb=1697528706; .AspNet.ApplicationCookie=VZmgM7TW6svr5G_2lsiNSJpRjqtVVMYi0rNVQqez--t8bvrY4Kck11hXAl6Ndqp1c6ShkiS-oYNaPuT6nTxIvT6IZ71rXfZqzp-RLfMR1fKQVRAGUnmluyLZLazH0BaHc4RB3A4LxzY4TKmJxotiDaINKvIK49Y691R3goAQ1UuIoICVP7caRqpe1gf0RLN49QpdMu_qgeSvvTj9V8KaKZ5CBP5wk8jVSboRo4s0ao2aFG9H89jrzjKaNewuJleGsowfyaBBl4FbNNpzBhPjATRPmuv61jEeBf59EOFPI4NFxBTubVi6V_1xGExbWA7m9RsJzbqGBNr4oo-IqRbI4rzj1i02VyzVbxuZSuKXpx0e8fx6v-yrBQg5bJWrBqPDEyf7emZFwzIkmXpUYtLknkm7d8-AP1YfBmDl9WKcavdvDUmOnb-PUyDAAj9WAwUGrvk6zTzsLBd99rl_Xpz6_yt_efqO1Pbd5Ufd3ceAf8I_gl5kWKWdu3q80Cril9xHiHcjJQIMA1OKORDD02OWe0gxKF8LaUw_CS5XjIVLalWF7q-IDTqk6Kxnyw-NRAE7DWtpzSqccSNY4vYqg107nNu1VTkPmD5Gen423uSrtNFmRHXz"
 startTime: "2023-09-26 20:00:00"
+#num: 1
+---
+AddressID: 227400
+goods_amount: 480.0000
+shipping_fee: 22
+goods_id: 11766
+attr_id: 36176
+num: 1
+sumPayPrice: 502.00
+is_inv: false
+lgs_id: 12
+integral: 0
+invoice_type: 1
+invoice_title: 动力小梓
+invoice_price: 0
+CompanyName: ''
+TaxpayerID: ''
+CompanyAddress: ''
+CompanyPhone: ''
+CompanyBankOfDeposit: ''
+CompanyBankNo: ''
+rule_goodslist_content: ''
+radom_rule_goodslist_content: ''
+remark: ''
+IsIntegralOffsetFreight: false
+ruleGoodsContent: ''
+ruleGoodsContentSign: ''
+r: 0.5978510208433656

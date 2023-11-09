@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -24,7 +25,7 @@ type TicketType struct {
 	ShippingFee          int     `json:"shipping_fee"`
 	GoodsID              int     `json:"goods_id"`
 	AttrID               int     `json:"attr_id"`
-	Num                  int     `json:"num"`
+	Num                  string  `json:"num"`
 	SumPayPrice          float64 `json:"sumPayPrice"`
 	IsInv                bool    `json:"is_inv"`
 	LgsID                int     `json:"lgs_id"`
@@ -90,8 +91,7 @@ func main() {
 		// 启动最大并发请求数的抢票任务
 		for i := 0; i < maxConcurrentRequests; i++ {
 			wg.Add(1)
-			//go ticketAdd(ticket, ticketChan, &wg)
-			go goodsAdd(ticket, ticketChan, &wg)
+			go ticketAdd(ticket, ticketChan, &wg)
 		}
 
 		// 等待所有抢票任务完成
@@ -115,63 +115,6 @@ func main() {
 	close(ticketChan)
 }
 
-func goodsAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
-	defer wg.Done()
-	url := "https://shop.48.cn/Order/BuySaveForGive"
-	method := "POST"
-
-	payload := fmt.Sprintf("AddressID=%s&goods_amount=%.4f&shipping_fee=%d&goods_id=%d&attr_id=%d&num=%d&sumPayPrice=%.2f&is_inv=%t&lgs_id=%d&integral=%d&invoice_type=%d&invoice_title=%s&invoice_price=%.2f&CompanyName=%s&TaxpayerID=%s&CompanyAddress=%s&CompanyPhone=%s&CompanyBankOfDeposit=%s&CompanyBankNo=%s&rule_goodslist_content=%s&radom_rule_goodslist_content=%s&remark=%s&IsIntegralOffsetFreight=%t&r=%.16f",
-		ticket.AddressID, ticket.GoodsAmount, ticket.ShippingFee, ticket.GoodsID, ticket.AttrID, ticket.Num, ticket.SumPayPrice, ticket.IsInv, ticket.LgsID, ticket.Integral, ticket.InvoiceType, ticket.InvoiceTitle, ticket.InvoicePrice, ticket.CompanyName, ticket.TaxpayerID, ticket.CompanyAddress, ticket.CompanyPhone, ticket.CompanyBankOfDeposit, ticket.CompanyBankNo, ticket.RuleGoodslistContent, ticket.RadomRuleGoodslist, ticket.Remark, ticket.IsIntegralOffset, ticket.R)
-
-	client := &http.Client{}
-
-	req, err := http.NewRequest(method, url, bytes.NewBufferString(payload))
-
-	if err != nil {
-		log.Println(err)
-		ticketChan <- false
-		return
-	}
-	req.Header.Add("Accept", "application/json, text/javascript, */*; q=0.01")
-	req.Header.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Add("Cookie", ticket.Cookie)
-	req.Header.Add("Origin", "https://shop.48.cn")
-	req.Header.Add("Referer", "https://shop.48.cn/order/buy")
-	req.Header.Add("Sec-Fetch-Dest", "empty")
-	req.Header.Add("Sec-Fetch-Mode", "cors")
-	req.Header.Add("Sec-Fetch-Site", "same-origin")
-	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36")
-	req.Header.Add("X-Requested-With", "XMLHttpRequest")
-	req.Header.Add("sec-ch-ua", "\"Chromium\";v=\"118\", \"Google Chrome\";v=\"118\", \"Not=A?Brand\";v=\"99\"")
-	req.Header.Add("sec-ch-ua-mobile", "?0")
-	req.Header.Add("sec-ch-ua-platform", "\"Linux\"")
-
-	res, err := client.Do(req)
-	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body)
-	if err != nil {
-		log.Println(err)
-		ticketChan <- false
-		return
-	}
-	var bodyMessage Message
-	err = json.Unmarshal(body, &bodyMessage)
-	if err != nil {
-		log.Println(err)
-		ticketChan <- false
-		return
-	}
-	log.Println(bodyMessage)
-	if bodyMessage.HasError == false {
-		ticketChan <- true
-		return
-	}
-
-	ticketChan <- false
-	return
-}
-
 func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -180,8 +123,19 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 
 	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand)
 
+	proxyURL, err := url.Parse("http://liliuli808:woai258123@tunnel1.docip.net:13541")
+	if err != nil {
+		fmt.Println("Error parsing proxy URL:", err)
+		os.Exit(1)
+	}
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyURL),
+	}
 	// 创建一个HTTP请求客户端
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Second,
+	}
 
 	// 创建一个HTTP POST请求
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBufferString(requestData))

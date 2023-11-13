@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	_ "gopkg.in/yaml.v2"
 	"io"
 	"log"
 	"net/http"

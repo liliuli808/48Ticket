@@ -135,7 +135,7 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	// 创建一个HTTP请求客户端
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   time.Second * 10,
+		Timeout:   time.Second * 2,
 	}
 
 	// 创建一个HTTP POST请求

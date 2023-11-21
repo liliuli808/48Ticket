@@ -108,7 +108,6 @@ func main() {
 
 		if successCount > 0 {
 			log.Println("抢票成功")
-			break
 		} else {
 			log.Println("抢票失败，继续尝试...")
 		}

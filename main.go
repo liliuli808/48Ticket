@@ -77,7 +77,7 @@ func main() {
 	log.Println(dateTime.String())
 	log.Println(time.Now())
 	// 设置最大并发请求数
-	maxConcurrentRequests := 10
+	maxConcurrentRequests := 30
 
 	// 创建通道用于通知抢票结果
 	ticketChan := make(chan bool, maxConcurrentRequests)
@@ -108,6 +108,7 @@ func main() {
 
 		if successCount > 0 {
 			log.Println("抢票成功")
+			//break
 		} else {
 			log.Println("抢票失败，继续尝试...")
 		}

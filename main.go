@@ -45,9 +45,13 @@ type TicketType struct {
 	Remark               string  `json:"remark"`
 	IsIntegralOffset     bool    `json:"IsIntegralOffsetFreight"`
 	R                    float64 `json:"r"`
+	LogFile              string  `json:"logFile"`
 }
 
 func main() {
+
+	setLogOutPut()
+
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
 	// 读取YAML配置文件
@@ -74,8 +78,7 @@ func main() {
 		fmt.Println("解析日期时间失败:", err)
 		return
 	}
-	log.Println(dateTime.String())
-	log.Println(time.Now())
+
 	// 设置最大并发请求数
 	maxConcurrentRequests := 30
 
@@ -113,7 +116,73 @@ func main() {
 			log.Println("抢票失败，继续尝试...")
 		}
 	}
-	close(ticketChan)
+
+}
+
+func setLogOutPut() {
+	// 创建或打开一个日志文件
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("无法打开日志文件:", err)
+	}
+	defer logFile.Close()
+
+	// 设置日志输出到文件
+	log.SetOutput(logFile)
+}
+
+func ticketCheck(ticket TicketType) {
+	checkUrl := "https://shop.48.cn/TOrder/tickCheck?id=%s&seattype=%s&r=0.5246474955150733"
+	requestUrl := fmt.Sprintf(checkUrl, ticket.TicketID, ticket.SeatType)
+	// Create a new HTTP client
+	client := &http.Client{}
+
+	// Create a new HTTP request with the specified method and URL
+	req, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+	// Set the request headers
+	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Cookie", ticket.Cookie)
+	req.Header.Set("Referer", "https://shop.48.cn/tickets/item/5633?seat_type=3")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("sec-ch-ua", `"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"`)
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("sec-ch-ua-platform", `"Windows"`)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error performing request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	var checkMessage CheckMessage
+	err = json.Unmarshal(body, &checkMessage)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+type CheckMessage struct {
+	HasError     bool        `json:"HasError"`
+	ErrorCode    string      `json:"ErrorCode"`
+	Message      interface{} `json:"Message"`
+	ReturnObject string      `json:"ReturnObject"`
 }
 
 func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {

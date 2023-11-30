@@ -22,6 +22,7 @@ RUN apk add alpine-conf && \
     apk del alpine-conf
 
 COPY --from=builder /usr/src/app/ticket /usr/bin/ticket
+COPY --from=builder /usr/src/app/log.txt /data/log.txt
 RUN chmod +x /usr/bin/ticket
 
 WORKDIR /data

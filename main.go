@@ -49,7 +49,15 @@ type TicketType struct {
 
 func main() {
 
-	setLogOutPut()
+	// 创建或打开一个日志文件
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("无法打开日志文件:", err)
+	}
+	defer logFile.Close()
+
+	// 设置日志输出到文件
+	log.SetOutput(logFile)
 
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
@@ -83,13 +91,13 @@ func main() {
 		return
 	}
 
-	//go func() {
-	//	for {
-	//		ticketAdd(ticket)
-	//	}
-	//}()
+	go func() {
+		for {
+			ticketAdd(ticket)
+		}
+	}()
 
-	checkResultChan := make(chan bool, 2)
+	checkResultChan := make(chan bool)
 	go func() {
 		for {
 
@@ -114,22 +122,10 @@ func main() {
 
 }
 
-func setLogOutPut() {
-	// 创建或打开一个日志文件
-	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("无法打开日志文件:", err)
-	}
-	defer logFile.Close()
-
-	// 设置日志输出到文件
-	log.SetOutput(logFile)
-}
-
 func ticketCheck(ticket TicketType) bool {
 	checkUrl := "https://shop.48.cn/TOrder/tickCheck?id=%s&seattype=%s&r=0.5246474955150733"
 	requestUrl := fmt.Sprintf(checkUrl, ticket.TicketID, ticket.SeatType)
-	fmt.Print(requestUrl, "\n")
+	log.Print(requestUrl, "\n")
 	// Create a new HTTP client
 	client := &http.Client{}
 
@@ -172,7 +168,7 @@ func ticketCheck(ticket TicketType) bool {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(checkMessage)
+	log.Println(checkMessage)
 	if checkMessage.HasError == true {
 		return false
 	}

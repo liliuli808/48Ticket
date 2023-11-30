@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 )
@@ -191,18 +190,9 @@ func ticketAdd(ticket TicketType) {
 
 	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand)
 
-	proxyURL, err := url.Parse("http://liliuli808:woai258123@tunnel1.docip.net:13541")
-	if err != nil {
-		fmt.Println("Error parsing proxy URL:", err)
-		os.Exit(1)
-	}
-	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyURL),
-	}
 	// 创建一个HTTP请求客户端
 	client := &http.Client{
-		Transport: transport,
-		Timeout:   time.Second,
+		Timeout: time.Second,
 	}
 
 	// 创建一个HTTP POST请求

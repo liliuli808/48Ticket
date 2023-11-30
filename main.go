@@ -90,13 +90,16 @@ func main() {
 		return
 	}
 
+	checkResultChan := make(chan bool, 2)
 	go func() {
 		for {
-			ticketAdd(ticket)
+			if ticketAdd(ticket) {
+				checkResultChan <- true
+				break
+			}
 		}
 	}()
 
-	checkResultChan := make(chan bool)
 	go func() {
 		for {
 
@@ -184,7 +187,7 @@ type CheckMessage struct {
 	ReturnObject string      `json:"ReturnObject"`
 }
 
-func ticketAdd(ticket TicketType) {
+func ticketAdd(ticket TicketType) bool {
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
@@ -199,7 +202,7 @@ func ticketAdd(ticket TicketType) {
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBufferString(requestData))
 	if err != nil {
 		log.Println(err)
-		return
+		return false
 	}
 
 	// 设置请求头
@@ -223,21 +226,27 @@ func ticketAdd(ticket TicketType) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return
+		return false
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return
+		return false
 	}
 	var bodyMessage Message
 	err = json.Unmarshal(body, &bodyMessage)
 	if err != nil {
 		log.Println(err)
-		return
+		return false
 	}
-	log.Println(bodyMessage)
+	if bodyMessage.HasError == true {
+		return false
+	}
+	if bodyMessage.ErrorCode == "success" {
+		return true
+	}
+	return false
 }
 
 type Message struct {

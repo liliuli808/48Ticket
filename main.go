@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -79,42 +78,38 @@ func main() {
 		return
 	}
 
-	// 设置最大并发请求数
-	maxConcurrentRequests := 30
+	currentTime := time.Now().Add(2 * time.Second)
+	if currentTime.Before(dateTime) {
+		return
+	}
 
-	// 创建通道用于通知抢票结果
-	ticketChan := make(chan bool, maxConcurrentRequests)
+	//go func() {
+	//	for {
+	//		ticketAdd(ticket)
+	//	}
+	//}()
 
-	// 创建等待组
-	var wg sync.WaitGroup
-	for {
-		currentTime := time.Now().Add(2 * time.Second)
-		if currentTime.Before(dateTime) {
-			continue
-		}
-		// 启动最大并发请求数的抢票任务
-		for i := 0; i < maxConcurrentRequests; i++ {
-			wg.Add(1)
-			go ticketAdd(ticket, ticketChan, &wg)
-		}
+	checkResultChan := make(chan bool, 2)
+	go func() {
+		for {
 
-		// 等待所有抢票任务完成
-		wg.Wait()
-
-		// 统计抢票结果
-		successCount := 0
-		for i := 0; i < maxConcurrentRequests; i++ {
-			if <-ticketChan {
-				successCount++
+			if ticketCheck(ticket) {
+				checkResultChan <- true
+				break
 			}
-		}
 
-		if successCount > 0 {
-			log.Println("抢票成功")
-			//break
-		} else {
-			log.Println("抢票失败，继续尝试...")
+			time.Sleep(1 * time.Second)
 		}
+	}()
+
+	select {
+	case result := <-checkResultChan:
+		if result {
+			log.Println("抢票成功")
+			break
+		}
+	case <-time.After(2 * time.Minute):
+		break
 	}
 
 }
@@ -131,9 +126,10 @@ func setLogOutPut() {
 	log.SetOutput(logFile)
 }
 
-func ticketCheck(ticket TicketType) {
+func ticketCheck(ticket TicketType) bool {
 	checkUrl := "https://shop.48.cn/TOrder/tickCheck?id=%s&seattype=%s&r=0.5246474955150733"
 	requestUrl := fmt.Sprintf(checkUrl, ticket.TicketID, ticket.SeatType)
+	fmt.Print(requestUrl, "\n")
 	// Create a new HTTP client
 	client := &http.Client{}
 
@@ -141,7 +137,7 @@ func ticketCheck(ticket TicketType) {
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-		return
+		return false
 	}
 	// Set the request headers
 	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
@@ -161,14 +157,14 @@ func ticketCheck(ticket TicketType) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error performing request:", err)
-		return
+		return false
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
-		return
+		return false
 	}
 
 	var checkMessage CheckMessage
@@ -176,6 +172,14 @@ func ticketCheck(ticket TicketType) {
 	if err != nil {
 		log.Println(err)
 	}
+	fmt.Println(checkMessage)
+	if checkMessage.HasError == true {
+		return false
+	}
+	if checkMessage.ErrorCode == "wait" {
+		return false
+	}
+	return true
 }
 
 type CheckMessage struct {
@@ -185,9 +189,7 @@ type CheckMessage struct {
 	ReturnObject string      `json:"ReturnObject"`
 }
 
-func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func ticketAdd(ticket TicketType) {
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
@@ -211,7 +213,6 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBufferString(requestData))
 	if err != nil {
 		log.Println(err)
-		ticketChan <- false
 		return
 	}
 
@@ -236,31 +237,21 @@ func ticketAdd(ticket TicketType, ticketChan chan bool, wg *sync.WaitGroup) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		ticketChan <- false
 		return
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		ticketChan <- false
 		return
 	}
 	var bodyMessage Message
 	err = json.Unmarshal(body, &bodyMessage)
 	if err != nil {
 		log.Println(err)
-		ticketChan <- false
 		return
 	}
 	log.Println(bodyMessage)
-	if bodyMessage.HasError == false {
-		ticketChan <- true
-		return
-	}
-
-	ticketChan <- false
-	return
 }
 
 type Message struct {

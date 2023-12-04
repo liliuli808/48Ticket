@@ -110,6 +110,25 @@ func main() {
 }
 
 func ticketCheck(ticket TicketType) bool {
+	// 定义日期时间字符串的格式
+	format := "2006-01-02 15:04:05"
+
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
+
+	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
+	dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
+	if err != nil {
+		fmt.Println("解析日期时间失败:", err)
+		return false
+	}
+
+	// 提前0.02秒抢票
+	currentTime := time.Now().Add(20 * time.Millisecond)
+	if currentTime.Before(dateTime) {
+		return false
+	}
+
 	checkUrl := "https://shop.48.cn/TOrder/tickCheck?id=%s&seattype=%s&r=0.5246474955150733"
 	requestUrl := fmt.Sprintf(checkUrl, ticket.TicketID, ticket.SeatType)
 	log.Print(requestUrl, "\n")
@@ -189,7 +208,6 @@ func ticketAdd(ticket TicketType) bool {
 	// 提前0.02秒抢票
 	currentTime := time.Now().Add(20 * time.Millisecond)
 	if currentTime.Before(dateTime) {
-		log.Println("还没到抢票时间")
 		return false
 	}
 	log.Println("开始抢票")

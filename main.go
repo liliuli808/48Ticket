@@ -58,8 +58,6 @@ func main() {
 	// 设置日志输出到文件
 	log.SetOutput(logFile)
 
-	var cstZone = time.FixedZone("CST", 8*3600) // 东八
-	time.Local = cstZone
 	// 读取YAML配置文件
 	yamlFile, err := os.ReadFile("./config.yaml")
 	if err != nil {
@@ -73,21 +71,6 @@ func main() {
 	err = yaml.Unmarshal(yamlFile, &ticket)
 	if err != nil {
 		log.Fatalf("无法解析YAML文件: %v", err)
-	}
-
-	// 定义日期时间字符串的格式
-	format := "2006-01-02 15:04:05"
-
-	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
-	dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
-	if err != nil {
-		fmt.Println("解析日期时间失败:", err)
-		return
-	}
-
-	currentTime := time.Now().Add(2 * time.Second)
-	if currentTime.Before(dateTime) {
-		return
 	}
 
 	checkResultChan := make(chan bool, 2)
@@ -190,6 +173,25 @@ type CheckMessage struct {
 }
 
 func ticketAdd(ticket TicketType) bool {
+	// 定义日期时间字符串的格式
+	format := "2006-01-02 15:04:05"
+
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
+
+	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
+	dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
+	if err != nil {
+		fmt.Println("解析日期时间失败:", err)
+		return false
+	}
+
+	// 提前0.02秒抢票
+	currentTime := time.Now().Add(20 * time.Millisecond)
+	if currentTime.Before(dateTime) {
+		log.Println("还没到抢票时间")
+		return false
+	}
 	log.Println("开始抢票")
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"

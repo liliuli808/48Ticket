@@ -97,6 +97,8 @@ func main() {
 				checkResultChan <- true
 				break
 			}
+			// 0.5秒检查一次
+			time.Sleep(500 * time.Millisecond)
 		}
 	}()
 
@@ -188,6 +190,7 @@ type CheckMessage struct {
 }
 
 func ticketAdd(ticket TicketType) bool {
+	log.Println("开始抢票")
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
@@ -240,10 +243,11 @@ func ticketAdd(ticket TicketType) bool {
 		log.Println(err)
 		return false
 	}
+	log.Println(string(body))
 	if bodyMessage.HasError == true {
 		return false
 	}
-	if bodyMessage.ErrorCode == "success" {
+	if bodyMessage.Message == "success" {
 		return true
 	}
 	return false

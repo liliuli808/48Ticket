@@ -106,7 +106,7 @@ func main() {
 	case <-time.After(2 * time.Minute):
 		break
 	}
-
+	log.Println("脚本结束运行")
 }
 
 func ticketCheck(ticket TicketType) bool {

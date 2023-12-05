@@ -57,7 +57,7 @@ func main() {
 
 	// 设置日志输出到文件
 	log.SetOutput(logFile)
-
+	log.Println("脚本开始运行")
 	// 读取YAML配置文件
 	yamlFile, err := os.ReadFile("./config.yaml")
 	if err != nil {

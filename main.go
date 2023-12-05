@@ -103,7 +103,7 @@ func main() {
 			log.Println("抢票成功")
 			break
 		}
-	case <-time.After(2 * time.Minute):
+	case <-time.After(20 * time.Minute):
 		break
 	}
 	log.Println("脚本结束运行")

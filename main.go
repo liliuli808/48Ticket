@@ -48,6 +48,15 @@ type TicketType struct {
 }
 
 func main() {
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("无法打开日志文件:", err)
+	}
+	defer logFile.Close()
+
+	// 设置日志输出到文件
+	log.SetOutput(logFile)
+
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
 	// 读取YAML配置文件

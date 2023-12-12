@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -74,7 +75,7 @@ func main() {
 	}
 
 	// 设置最大并发请求数
-	maxConcurrentRequests := 30
+	maxConcurrentRequests := 5
 
 	// 创建通道用于通知抢票结果
 	ticketChan := make(chan bool, 2)
@@ -214,33 +215,24 @@ type CheckMessage struct {
 }
 
 func ticketAdd(ticket TicketType, ticketChan chan bool) bool {
-	// 定义日期时间字符串的格式
-	format := "2006-01-02 15:04:05"
-
-	var cstZone = time.FixedZone("CST", 8*3600) // 东八
-	time.Local = cstZone
-
-	// 使用 time 包中的 Parse 函数将字符串解析为时间对象
-	dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
-	if err != nil {
-		fmt.Println("解析日期时间失败:", err)
-		return false
-	}
-
-	// 提前0.02秒抢票
-	currentTime := time.Now().Add(20 * time.Millisecond)
-	if currentTime.Before(dateTime) {
-		return false
-	}
 	log.Println("开始抢票")
 	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
 	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand)
 
+	proxyURL, err := url.Parse("http://liliuli808:woai258123@tunnel1.docip.net:13541")
+	if err != nil {
+		fmt.Println("Error parsing proxy URL:", err)
+		os.Exit(1)
+	}
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyURL),
+	}
 	// 创建一个HTTP请求客户端
 	client := &http.Client{
-		Timeout: time.Second,
+		Transport: transport,
+		Timeout:   time.Second,
 	}
 
 	// 创建一个HTTP POST请求
@@ -290,6 +282,7 @@ func ticketAdd(ticket TicketType, ticketChan chan bool) bool {
 		return false
 	}
 	if bodyMessage.Message == "success" {
+		ticketChan <- true
 		return true
 	}
 	return false

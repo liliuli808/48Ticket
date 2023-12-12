@@ -73,38 +73,60 @@ func main() {
 		log.Fatalf("无法解析YAML文件: %v", err)
 	}
 
-	checkResultChan := make(chan bool, 2)
-	go func() {
-		for {
-			if ticketAdd(ticket) {
-				checkResultChan <- true
+	// 设置最大并发请求数
+	maxConcurrentRequests := 30
+
+	// 创建通道用于通知抢票结果
+	ticketChan := make(chan bool, 2)
+	for {
+		format := "2006-01-02 15:04:05"
+
+		var cstZone = time.FixedZone("CST", 8*3600) // 东八
+		time.Local = cstZone
+
+		// 使用 time 包中的 Parse 函数将字符串解析为时间对象
+		dateTime, err := time.ParseInLocation(format, ticket.StartTime, cstZone)
+		if err != nil {
+			fmt.Println("解析日期时间失败:", err)
+			continue
+		}
+		currentTime := time.Now().Add(20 * time.Millisecond)
+		endTime, err := time.ParseInLocation("15:04:05", "20:02:00", cstZone)
+		durationUntilEnd := endTime.Sub(currentTime)
+		if err != nil {
+			fmt.Println("解析日期时间失败:", err)
+			continue
+		}
+		if currentTime.Before(dateTime) {
+			continue
+		}
+
+		// 启动最大并发请求数的抢票任务
+		for i := 0; i < maxConcurrentRequests; i++ {
+			go ticketAdd(ticket, ticketChan)
+		}
+
+		go func() {
+			for {
+				time.Sleep(1 * time.Second)
+				if ticketCheck(ticket) {
+					ticketChan <- true
+					break
+				}
+
+			}
+		}()
+
+		select {
+		case result := <-ticketChan:
+			if result {
+				log.Println("抢票成功")
 				break
 			}
-			// 0.5秒检查一次
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
-
-	go func() {
-		for {
-
-			if ticketCheck(ticket) {
-				checkResultChan <- true
-				break
-			}
-
-			time.Sleep(1 * time.Second)
-		}
-	}()
-
-	select {
-	case result := <-checkResultChan:
-		if result {
-			log.Println("抢票成功")
+		case <-time.After(durationUntilEnd):
 			break
 		}
-	case <-time.After(2 * time.Minute):
-		break
+
 	}
 
 }
@@ -178,10 +200,10 @@ func ticketCheck(ticket TicketType) bool {
 	if checkMessage.HasError == true {
 		return false
 	}
-	if checkMessage.ErrorCode == "wait" {
-		return false
+	if checkMessage.ErrorCode == "success" {
+		return true
 	}
-	return true
+	return false
 }
 
 type CheckMessage struct {
@@ -191,7 +213,7 @@ type CheckMessage struct {
 	ReturnObject string      `json:"ReturnObject"`
 }
 
-func ticketAdd(ticket TicketType) bool {
+func ticketAdd(ticket TicketType, ticketChan chan bool) bool {
 	// 定义日期时间字符串的格式
 	format := "2006-01-02 15:04:05"
 

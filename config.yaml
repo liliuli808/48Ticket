@@ -1,34 +1,7 @@
-brand: 3
-seatType: 3
-ticketId: 5633
-cookie: SessionID=ljpnsodundvmdunpqtpebv2q; .AspNet.ApplicationCookie=qwnXWw6pwSjjJcrd8ffsYrwtKha7qv2An6qEb5ghamAPwj6WOnrLzkWs7bojmzaika5mmYFHdiSulABtxIN9SaOq_u81k1qyeHR1fdBxZjmHnOQ-975vb_p5bLap6mzrY2KECEh-mEWuTjsv8cnN7zrA3TcFpUe_I-SvC_a4PpkGnky4gE6SaCoXgM0QqjVbbWjH689hKgni3awdW1tYr6Fz-duhjybzARfD0z7hQr9CVx9iGHvX26Txske4k0yU-aFFCjGWcdcpRv5QAqIK-IO_ADPN84WuaMtXw-q9uTsmotqDKaCS-XvuX5CLNSBfmCYxiZwYlMbvP0pEazn683l8LKIcR_PWXDnI0Dt1sZScaF0ayS4akRqrJJAfd_EE6oS5HgQG7tyNgmfTCFEAmj7sy1CtULlbLF4c4zw3TMeVmEtZluyh0HMw4EnrtDzI07pOKfjdFY1MgzFmkVQk4iqv6L42k73erzMqDQxduGNEkEVAisUIiQ92tvaiKMgQPzrII562TY4qAhRJniPnO5LCjaiIjhqVXlVH7qO5ydQM-3uhvBHUFWgK0lX4RMYQBnWjFdlRPOVy9fA-JKQNp-YmrGRdEEqxMV8bONJAdOD7_De9xyL_DLOAWN4GbTxe8XN2nw; __RequestVerificationToken=-eYhFz5x0de0wjBkfoZlgtZzL2noidZ2V2SVGzoDutQhGjJ3YZQqLBwCvgPYZtNQYk11K5brx0kAZkoXVfjc20KdoqI1; Hm_lvt_f32737cfa62ed971bb3185792d3204eb=1699500847,1701056564,1701253465,1701327161; Hm_lpvt_f32737cfa62ed971bb3185792d3204eb=1701327161
-startTime: 2023-09-26 20:00:00
+brand: 1
+seatType: 4
+ticketId: 5757
+startTime: 2024-01-16 20:00:00
 num: 1
-logFile: logfile.txt
----
-#AddressID: 227400
-#goods_amount: 480.0000
-#shipping_fee: 22
-#goods_id: 11766
-#attr_id: 36176
-#num: 1
-#sumPayPrice: 502.00
-#is_inv: false
-#lgs_id: 12
-#integral: 0
-#invoice_type: 1
-#invoice_title: 动力小梓
-#invoice_price: 0
-#CompanyName: ''
-#TaxpayerID: ''
-#CompanyAddress: ''
-#CompanyPhone: ''
-#CompanyBankOfDeposit: ''
-#CompanyBankNo: ''
-#rule_goodslist_content: ''
-#radom_rule_goodslist_content: ''
-#remark: ''
-#IsIntegralOffsetFreight: false
-#ruleGoodsContent: ''
-#ruleGoodsContentSign: ''
-#r: 0.5978510208433656
+username:
+password:

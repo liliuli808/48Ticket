@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	_ "go.uber.org/automaxprocs"
 	"gopkg.in/yaml.v2"
-	_ "gopkg.in/yaml.v2"
 	"io"
 	"log"
 	"net/http"
@@ -17,7 +17,6 @@ import (
 )
 
 func main() {
-
 	// 创建或打开一个日志文件
 	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
@@ -77,6 +76,74 @@ func main() {
 		time.Sleep(time.Second)
 	}
 
+}
+
+func getIndexTickets() TicketList {
+	url := "https://shop.48.cn/Home/IndexTickets"
+	var ticketList TicketList
+
+	payload := []byte("brand_id=-1&team_type=-1&date_type=0")
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return ticketList
+	}
+
+	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Set("Cookie", "route=46bf5666bf631c4b75db945ee8ab5a17; Hm_lvt_f32737cfa62ed971bb3185792d3204eb=1705209344,1705395989,1705403887,1706001331; Hm_lpvt_f32737cfa62ed971bb3185792d3204eb=1706001331")
+	req.Header.Set("Origin", "https://shop.48.cn")
+	req.Header.Set("Pragma", "no-cache")
+	req.Header.Set("Referer", "https://shop.48.cn/")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("sec-ch-ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("sec-ch-ua-platform", "\"Linux\"")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error making request:", err)
+		return ticketList
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return ticketList
+	}
+	json.Unmarshal(body, &ticketList)
+	return ticketList
+}
+
+type TicketList struct {
+	Listnew []struct {
+		TicketsId       int    `json:"tickets_id"`
+		TheatreId       int    `json:"theatre_id"`
+		BrandId         int    `json:"brand_id"`
+		IsOnSale        bool   `json:"is_on_sale"`
+		StartPlaydate   string `json:"start_playdate"`
+		TicketsName     string `json:"tickets_name"`
+		TeamType        int    `json:"team_type"`
+		TeamTypeBrandId int    `json:"team_type_brand_id"`
+		MerchandiseType int    `json:"merchandise_type"`
+		TicketsSales    []struct {
+			SeatType     int     `json:"seat_type"`
+			Amount       int     `json:"amount"`
+			Price        float64 `json:"price"`
+			RankIntegral int     `json:"rank_integral"`
+		} `json:"tickets_sales"`
+	} `json:"listnew"`
+	FlashList []interface{} `json:"flash_list"`
 }
 
 func ticketAdd(ticket model.TicketType) bool {

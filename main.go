@@ -6,10 +6,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	_ "go.uber.org/automaxprocs"
 	"gopkg.in/yaml.v2"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"sync"
@@ -67,91 +67,26 @@ func main() {
 		// 启动最大并发请求数的抢票任务
 		for i := 0; i < maxConcurrentRequests; i++ {
 			wg.Add(1)
-			go func() {
-				ticketAdd(ticket)
+			go func(i int) {
+				ticketAdd(ticket, i)
 				defer wg.Done()
-			}()
+			}(i)
 		}
 		wg.Wait()
 		time.Sleep(time.Second)
 	}
-
 }
 
-func getIndexTickets() TicketList {
-	url := "https://shop.48.cn/Home/IndexTickets"
-	var ticketList TicketList
-
-	payload := []byte("brand_id=-1&team_type=-1&date_type=0")
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return ticketList
-	}
-
-	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
-	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Set("Cookie", "route=46bf5666bf631c4b75db945ee8ab5a17; Hm_lvt_f32737cfa62ed971bb3185792d3204eb=1705209344,1705395989,1705403887,1706001331; Hm_lpvt_f32737cfa62ed971bb3185792d3204eb=1706001331")
-	req.Header.Set("Origin", "https://shop.48.cn")
-	req.Header.Set("Pragma", "no-cache")
-	req.Header.Set("Referer", "https://shop.48.cn/")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	req.Header.Set("X-Requested-With", "XMLHttpRequest")
-	req.Header.Set("sec-ch-ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
-	req.Header.Set("sec-ch-ua-mobile", "?0")
-	req.Header.Set("sec-ch-ua-platform", "\"Linux\"")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("Error making request:", err)
-		return ticketList
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return ticketList
-	}
-	json.Unmarshal(body, &ticketList)
-	return ticketList
+func randNum() float64 {
+	return rand.Float64()
 }
 
-type TicketList struct {
-	Listnew []struct {
-		TicketsId       int    `json:"tickets_id"`
-		TheatreId       int    `json:"theatre_id"`
-		BrandId         int    `json:"brand_id"`
-		IsOnSale        bool   `json:"is_on_sale"`
-		StartPlaydate   string `json:"start_playdate"`
-		TicketsName     string `json:"tickets_name"`
-		TeamType        int    `json:"team_type"`
-		TeamTypeBrandId int    `json:"team_type_brand_id"`
-		MerchandiseType int    `json:"merchandise_type"`
-		TicketsSales    []struct {
-			SeatType     int     `json:"seat_type"`
-			Amount       int     `json:"amount"`
-			Price        float64 `json:"price"`
-			RankIntegral int     `json:"rank_integral"`
-		} `json:"tickets_sales"`
-	} `json:"listnew"`
-	FlashList []interface{} `json:"flash_list"`
-}
-
-func ticketAdd(ticket model.TicketType) bool {
-	log.Println("开始抢票")
-	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=0.056981472084815854"
+func ticketAdd(ticket model.TicketType, i int) bool {
+	log.Println("开始抢票-----", i)
+	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=%s"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
-	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand)
+	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand, randNum())
 
 	// 创建一个HTTP请求客户端
 	client := &http.Client{}

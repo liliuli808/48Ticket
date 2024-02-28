@@ -41,7 +41,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("无法解析YAML文件: %v", err)
 	}
-	ticket.Cookie = login.QuickLogin(ticket)
+	if ticket.Username != "" {
+		ticket.Cookie = login.QuickLogin(ticket)
+	}
 	//// 设置最大并发请求数
 	maxConcurrentRequests := 3
 

@@ -4,7 +4,6 @@ import (
 	"awesomeProject/login"
 	"awesomeProject/model"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -45,7 +44,7 @@ func main() {
 		ticket.Cookie = login.QuickLogin(ticket)
 	}
 	//// 设置最大并发请求数
-	maxConcurrentRequests := 3
+	maxConcurrentRequests := 1
 
 	// 创建通道用于通知抢票结果
 	for {
@@ -75,7 +74,7 @@ func main() {
 			}(i)
 		}
 		wg.Wait()
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 10)
 	}
 }
 
@@ -85,14 +84,13 @@ func randNum() float64 {
 
 func ticketAdd(ticket model.TicketType, i int) bool {
 	log.Println("开始抢票-----", i)
-	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=%s"
+	requestData := "ticketsid=%s&num=%s&seattype=%s&brand_id=%s&choose_times_end=-1&ticketstype=2&r=%.16f"
 	requestURL := "https://shop.48.cn/TOrder/ticket_Add"
 
 	requestData = fmt.Sprintf(requestData, ticket.TicketID, ticket.Num, ticket.SeatType, ticket.Brand, randNum())
-
+	fmt.Println(requestData)
 	// 创建一个HTTP请求客户端
 	client := &http.Client{}
-
 	// 创建一个HTTP POST请求
 	request, err := http.NewRequest("POST", requestURL, bytes.NewBufferString(requestData))
 	if err != nil {
@@ -109,42 +107,32 @@ func ticketAdd(ticket model.TicketType, i int) bool {
 	request.Header.Set("Cookie", ticket.Cookie)
 	request.Header.Set("Origin", "https://shop.48.cn")
 	request.Header.Set("Pragma", "no-cache")
-	request.Header.Set("Referer", fmt.Sprintf("https://shop.48.cn/tickets/item/%s?seat_type=%s", ticket.TicketID, ticket.SeatType))
+	request.Header.Set("Referer", fmt.Sprintf("https://shop.48.cn/tickets/item/%s", ticket.TicketID))
 	request.Header.Set("Sec-Fetch-Dest", "empty")
 	request.Header.Set("Sec-Fetch-Mode", "cors")
 	request.Header.Set("Sec-Fetch-Site", "same-origin")
-	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
 	request.Header.Set("X-Requested-With", "XMLHttpRequest")
-	request.Header.Set("sec-ch-ua", `"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"`)
+	request.Header.Set("sec-ch-ua", `"Not_A Brand";v="24", "Chromium";v="122", "Google Chrome";v="122"`)
 	request.Header.Set("sec-ch-ua-mobile", "?0")
 	request.Header.Set("sec-ch-ua-platform", `"Linux"`)
 
 	// 发送HTTP请求
-	resp, err := client.Do(request)
+	res, err := client.Do(request)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
-		return false
+		// 请求发生异常
+		fmt.Println(err.Error())
+	} else {
+		defer res.Body.Close() //保证最后关闭Body
+		// 无gzip压缩, 读取返回内容
+		body, _ := io.ReadAll(res.Body)
+		fmt.Println(string(body))
 	}
-	var bodyMessage Message
-	err = json.Unmarshal(body, &bodyMessage)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	log.Println(string(body))
-	if bodyMessage.HasError == true {
-		return false
-	}
-	if bodyMessage.Message == "success" {
-		return true
-	}
-	return false
+	return true
 }
 
 type Message struct {

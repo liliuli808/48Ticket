@@ -15,6 +15,10 @@ func QuickLogin(ticket model.TicketType) string {
 	// 目标登录URL
 	url := "https://user.48.cn/QuickLogin/login/"
 
+	if ticket.Cookie != "" {
+		return ticket.Cookie
+	}
+
 	// 构造登录表单数据
 
 	payload := strings.NewReader(fmt.Sprintf("phone=&phonecode=&login_type=&area=&preg=&username=%s&password=%s", ticket.Username, ticket.Password))
